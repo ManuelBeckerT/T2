@@ -25,7 +25,6 @@ struct Tablero
 	int position;
 
 	Cell *** cells_matrix;
-	Cell ** cells_array;
 
 };
 
@@ -62,7 +61,6 @@ int main(int argc, char** argv)
 		printf("Modo de uso ./life <file> <t>\n");
 		return 0;
 	}
-	printf("\nEXECUTION TIME: %i\n", execution_time);
 
 	FILE* input_file = fopen(argv[1], "r");
 	/* Falló la apertura del archivo */
@@ -73,6 +71,8 @@ int main(int argc, char** argv)
 	}
 
 	int execution_time = atoi(argv[2]);
+	printf("\nEXECUTION TIME: %i\n", execution_time);
+
 	int table_count, a, b, c, d;
 	fscanf(input_file, "%i %i  %i %i %i", &table_count, &a, &b, &c, &d);
 
@@ -99,33 +99,48 @@ int main(int argc, char** argv)
 		//printf("%s", line);
 		char name[MAX_SIZE];
 		fscanf(input_file, "%s ", name);
-		tablero -> name = name;
+		tablero -> name = malloc(sizeof(name) + 1);
+		strcpy(tablero -> name, name);
 		printf("%s\n", tablero -> name);
 		int cell_count;
 		fscanf(input_file, "%i ", &cell_count);
 		tablero -> cell_count = cell_count;
 		printf("%i\n", tablero -> cell_count);
-		tablero -> cells_array = malloc(sizeof(Cell *)*cell_count);
 		tablero -> position = 0;
 
-		Cell ** cells_array = tablero -> cells_array;
-		while (cell_count > 0){
-			Cell * cell = malloc(sizeof(Cell));
-			cells_array[tablero -> position] = cell;
-			tablero -> position ++;
-			int x, y;
 
+		Cell *** array_matrix = malloc(sizeof(Cell **)*d);
+		tablero -> cells_matrix = array_matrix;
+		for (int i = 0; i < d; i++){
+			Cell ** array_line = malloc(sizeof(Cell *)*d);
+			array_matrix[i] = array_line;
+			for (int j = 0; j < d; j++){
+				array_line[j] = malloc(sizeof(Cell));
+				array_line[j] -> x = i;
+				array_line[j] -> y = j;
+				array_line[j] -> viva = 0;
+			}
+		}
+
+
+		while (cell_count > 0){
+			int x, y;
 			if (cell_count == 1){
 				fscanf(input_file, "%i %i\n", &x, &y);
+				Cell * cell = array_matrix[x][y];
 				cell -> x = x;
 				cell -> y = y;
+				cell -> viva = 1;
 			}
 			else{
 				fscanf(input_file, "%i %i ", &x, &y);
+				Cell * cell = array_matrix[x][y];
 				cell -> x = x;
 				cell -> y = y;
+				cell -> viva = 1;
 			}
-			printf("%i %i\n", cell -> x, cell -> y);
+			printf("%i %i\n", x, y);
+
 			cell_count --;
 		}
 		input_count ++;
@@ -139,12 +154,20 @@ int main(int argc, char** argv)
 	for (int tablero_count = 0; tablero_count < table_count; tablero_count ++){
 		Tablero * current_tablero = tableros[tablero_count];
 		printf("\nCURRENT TABLERO %s\n", current_tablero -> name);
-		Cell ** array = current_tablero -> cells_array;
-		for (int i = 0; i < current_tablero -> cell_count; i++){
-			printf("CELL POSITION %i, %i\n", array[i] -> x, array[i] -> y);
-			free(array[i]);
+
+		// LIBERANDO MATRIX
+		Cell *** current_matrix = current_tablero -> cells_matrix;
+		for (int i = 0; i < d; i++){
+			Cell ** current_line = current_matrix[i];
+			for (int j = 0; j < d; j++){
+				free(current_line[j]);
+			}
+			free(current_line);
 		}
-		free(array);
+		free(current_matrix);
+
+		char * current_name = current_tablero -> name;
+		free(current_name);
 		free(current_tablero);
 	}
 	free(tableros);
