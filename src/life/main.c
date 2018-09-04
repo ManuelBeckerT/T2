@@ -62,8 +62,7 @@ int main(int argc, char** argv)
 		printf("Modo de uso ./life <file> <t>\n");
 		return 0;
 	}
-	int execution_time = atoi(argv[2]);
-	printf("EXECUTION TIME: %i\n", execution_time);
+	printf("\nEXECUTION TIME: %i\n", execution_time);
 
 	FILE* input_file = fopen(argv[1], "r");
 	/* Falló la apertura del archivo */
@@ -73,10 +72,11 @@ int main(int argc, char** argv)
 		return 2;
 	}
 
+	int execution_time = atoi(argv[2]);
 	int table_count, a, b, c, d;
 	fscanf(input_file, "%i %i  %i %i %i", &table_count, &a, &b, &c, &d);
 
-	printf("INPUT INFO\nTable count: %i\nA: %i\nB: %i\nC: %i\nD: %i\n", table_count, a, b, c, d);
+	printf("\nINPUT INFO\nTable count: %i\nA: %i\nB: %i\nC: %i\nD: %i\n", table_count, a, b, c, d);
 
 	//######################################
 	//###    LECTURA DEL ARCHIVO TXT     ###
