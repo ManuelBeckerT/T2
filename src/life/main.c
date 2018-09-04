@@ -50,6 +50,19 @@ int count_lines(char * archivo){
 	return count;
 }
 
+void print_tablero(Tablero * tablero){
+	printf("PRINTING TABLERO %s\n", tablero -> name);
+	Cell *** matrix = tablero -> cells_matrix;
+	int size = tablero -> size_x;
+	for (int i = 0; i < size; i++){
+		for (int j = 0; j < size; j++){
+			printf("%i ", matrix[i][j] -> viva);
+		}
+		printf("\n");
+	}
+	printf("\n");
+}
+
 void tablero_init(Tablero * tablero, char * name){
 	tablero -> name = calloc(1, sizeof(name) + 1);
 	strcpy(tablero -> name, name);
@@ -92,6 +105,8 @@ int main(int argc, char** argv)
 	while (table_count != input_count){
 		printf("\nNUEVO TABLERO\n");
 		Tablero * tablero = malloc(sizeof(Tablero));
+		tablero -> size_x = d;
+		tablero -> size_y = d;
 		tableros[position] = tablero;
 		printf("POSITION %i\n", position);
 		position ++;
@@ -146,6 +161,9 @@ int main(int argc, char** argv)
 		input_count ++;
 	}
 
+	print_tablero(tableros[0]);
+	print_tablero(tableros[1]);
+	print_tablero(tableros[2]);
 
 	//######################################
 	//##   SIMULACION DE LOS PROCESOS     ##
