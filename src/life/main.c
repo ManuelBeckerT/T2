@@ -56,16 +56,17 @@ void print_tablero(Tablero * tablero){
 	int size = tablero -> size_x;
 	for (int j = 0; j < size; j++){
 		for (int i = 0; i < size; i++){
-			printf("%i ", matrix[size - j - 1][i] -> viva);
+			if (matrix[size - j - 1][i] -> viva == 1){
+				printf("\u25A0 ");
+			}
+			else{
+				printf("\u25A1 ");
+			}
+			//printf("%i ", matrix[size - j - 1][i] -> viva);
 		}
 		printf("\n");
 	}
 	printf("\n");
-}
-
-void tablero_init(Tablero * tablero, char * name){
-	tablero -> name = calloc(1, sizeof(name) + 1);
-	strcpy(tablero -> name, name);
 }
 
 int main(int argc, char** argv)
@@ -144,14 +145,14 @@ int main(int argc, char** argv)
 				fscanf(input_file, "%i %i\n", &x, &y);
 				Cell * cell = array_matrix[y][x];
 				cell -> x = x;
-				cell -> y = d - y - 1;
+				cell -> y = y;
 				cell -> viva = 1;
 			}
 			else{
 				fscanf(input_file, "%i %i ", &x, &y);
 				Cell * cell = array_matrix[y][x];
 				cell -> x = x;
-				cell -> y = d - y - 1;
+				cell -> y = y;
 				cell -> viva = 1;
 			}
 			printf("ORIGINAL: %i %i\nNEW: %i %i\n", y, x, d - y - 1, x);
