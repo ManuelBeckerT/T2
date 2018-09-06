@@ -158,120 +158,158 @@ int count_neighbour_cells(Cell *** matrix, int x, int y, int d){
 	return count;
 }
 
-void born_or_die_cell(Cell *** matrix, int x, int y, int a, int b, int c, int d){
+void born_or_die_cell(Tablero * tablero, Cell *** matrix, int x, int y, int a, int b, int c, int d){
 	Cell * cell = matrix[y][x];
 	int count = count_neighbour_cells(matrix, x, y, d);
 	printf("(%i, %i) -> COUNT: %i\n", x, y, count);
 	if (count == a){
 		printf("BORN CELL\n");
-		cell -> viva = 1;
-		if (y == 0){
-			printf("FIRST LINE\n");
-			cell -> before = cell -> viva;
-		}
-		else if (y == d - 1){
-			printf("LAST LINE\n");
-			if (x > 1 && x < d - 1){
-				printf("MEDIO\n");
-				Cell * cell_iterator = matrix[y][x - 2];
-				cell_iterator -> before = cell_iterator -> viva;
+		if (!cell -> viva){ // SI LA CELL NO ESTA VIVA
+			cell -> viva = 1;
+			tablero -> cell_count ++;
+			if (y == d - 1){ // SI LA CELL ESTA EN LA ULTIMA FILA
+				printf("ULTIMA FILA\n");
+				if (x > 1 && x < d - 1){
+					printf("ENTRE COLUMNA 2 Y D - 2\n");
+					Cell * cell_before_1 = matrix[y - 1][x - 2];
+					Cell * cell_before_2 = matrix[y][x - 2];
+					cell_before_1 -> before = cell_before_1 -> viva;
+					cell_before_2 -> before = cell_before_2 -> viva;
+				}
+				else if (x == d - 1){
+					printf("ULTIMA COLUMNA\n");
+					Cell * cell_before_1 = matrix[y - 1][x - 2];
+					Cell * cell_before_2 = matrix[y - 1][x - 1];
+					Cell * cell_before_3 = matrix[y - 1][x];
+					Cell * cell_before_4 = matrix[y][x - 2];
+					Cell * cell_before_5 = matrix[y][x - 1];
+					cell -> before = cell -> viva;
+					cell_before_1 -> before = cell_before_1 -> viva;
+					cell_before_2 -> before = cell_before_2 -> viva;
+					cell_before_3 -> before = cell_before_3 -> viva;
+					cell_before_4 -> before = cell_before_4 -> viva;
+					cell_before_5 -> before = cell_before_5 -> viva;
+				}
 			}
-			if (x == d - 1){
-				printf("ULTIMA COLUMNA\n");
-				Cell * cell_iterator_1 = matrix[y][x - 1];
-				Cell * cell_iterator_2 = matrix[y][x];
-				cell_iterator_1 -> before = cell_iterator_1 -> viva;
-				cell_iterator_2 -> before = cell_iterator_2 -> viva;
-			}
-		}
-		else{
-			printf("MIDDLE LINE\n");
-			if (x > 1 && x < d - 1){
-				printf("MEDIO\n");
-				Cell * cell_iterator = matrix[y - 1][x - 2];
-				cell_iterator -> before = cell_iterator -> viva;
-			}
-			if (x == d - 1){
-				printf("ULTIMA COLUMNA\n");
-				Cell * cell_iterator_1 = matrix[y - 1][x - 1];
-				Cell * cell_iterator_2 = matrix[y - 1][x];
-				cell_iterator_1 -> before = cell_iterator_1 -> viva;
-				cell_iterator_2 -> before = cell_iterator_2 -> viva;
+			else if (y > 0){ // SI ESTA EN CUALQUIER OTRA FILA
+				printf("CUALQUIER FILA\n");
+				if (x > 1 && x < d - 1){
+					printf("ENTRE COLUMNA 2 Y D - 2\n");
+					Cell * cell_before = matrix[y - 1][x - 2];
+					cell_before -> before = cell_before -> viva;
+				}
+				else if (x == d - 1){
+					printf("ULTIMA COLUMNA\n");
+					Cell * cell_before_1 = matrix[y - 1][x - 2];
+					Cell * cell_before_2 = matrix[y - 1][x - 1];
+					Cell * cell_before_3 = matrix[y - 1][x];
+					cell_before_1 -> before = cell_before_1 -> viva;
+					cell_before_2 -> before = cell_before_2 -> viva;
+					cell_before_3 -> before = cell_before_3 -> viva;
+				}
 			}
 		}
 	}
 	else if (count == 0){
 		printf("NOTHING\n");
-		if (y == 0){
-			printf("FIRST LINE\n");
-			cell -> before = cell -> viva;
-		}
-		else if (y == d - 1){
-			printf("LAST LINE\n");
+		if (y == d - 1){ // SI LA CELL ESTA EN LA ULTIMA FILA
+			printf("ULTIMA FILA\n");
 			if (x > 1 && x < d - 1){
-				printf("MEDIO\n");
-				Cell * cell_iterator = matrix[y][x - 2];
-				cell_iterator -> before = cell_iterator -> viva;
+				printf("ENTRE COLUMNA 2 Y D - 2\n");
+				Cell * cell_before_1 = matrix[y - 1][x - 2];
+				Cell * cell_before_2 = matrix[y][x - 2];
+				cell_before_1 -> before = cell_before_1 -> viva;
+				cell_before_2 -> before = cell_before_2 -> viva;
 			}
-			if (x == d - 1){
+			else if (x == d - 1){
 				printf("ULTIMA COLUMNA\n");
-				Cell * cell_iterator_1 = matrix[y][x - 1];
-				Cell * cell_iterator_2 = matrix[y][x];
-				cell_iterator_1 -> before = cell_iterator_1 -> viva;
-				cell_iterator_2 -> before = cell_iterator_2 -> viva;
+				Cell * cell_before_1 = matrix[y - 1][x - 2];
+				Cell * cell_before_2 = matrix[y - 1][x - 1];
+				Cell * cell_before_3 = matrix[y - 1][x];
+				Cell * cell_before_4 = matrix[y][x - 2];
+				Cell * cell_before_5 = matrix[y][x - 1];
+				cell -> before = cell -> viva;
+				cell_before_1 -> before = cell_before_1 -> viva;
+				cell_before_2 -> before = cell_before_2 -> viva;
+				cell_before_3 -> before = cell_before_3 -> viva;
+				cell_before_4 -> before = cell_before_4 -> viva;
+				cell_before_5 -> before = cell_before_5 -> viva;
 			}
 		}
-		else{
-			printf("MIDDLE LINE\n");
+		else if (y > 0){ // SI ESTA EN CUALQUIER OTRA FILA
+			printf("CUALQUIER FILA\n");
 			if (x > 1 && x < d - 1){
-				printf("MEDIO\n");
-				Cell * cell_iterator = matrix[y - 1][x - 2];
-				cell_iterator -> before = cell_iterator -> viva;
+				printf("ENTRE COLUMNA 2 Y D - 2\n");
+				Cell * cell_before = matrix[y - 1][x - 2];
+				cell_before -> before = cell_before -> viva;
 			}
-			if (x == d - 1){
+			else if (x == d - 1){
 				printf("ULTIMA COLUMNA\n");
-				Cell * cell_iterator_1 = matrix[y - 1][x - 1];
-				Cell * cell_iterator_2 = matrix[y - 1][x];
-				cell_iterator_1 -> before = cell_iterator_1 -> viva;
-				cell_iterator_2 -> before = cell_iterator_2 -> viva;
+				Cell * cell_before_1 = matrix[y - 1][x - 2];
+				Cell * cell_before_2 = matrix[y - 1][x - 1];
+				Cell * cell_before_3 = matrix[y - 1][x];
+				cell_before_1 -> before = cell_before_1 -> viva;
+				cell_before_2 -> before = cell_before_2 -> viva;
+				cell_before_3 -> before = cell_before_3 -> viva;
 			}
 		}
 	}
 	else if(count < b || count > c){
 		printf("DIE CELL\n");
-		cell -> viva = 0;
-		if (y == 0){
-			printf("FIRST LINE\n");
-			cell -> before = cell -> viva;
-		}
-		else if (y == d - 1){
-			printf("LAST LINE\n");
-			if (x > 1 && x < d - 1){
-				printf("MEDIO\n");
-				Cell * cell_iterator = matrix[y][x - 2];
-				cell_iterator -> before = cell_iterator -> viva;
+		if (cell -> viva){
+			cell -> viva = 0;
+			tablero -> cell_count --;
+			if (y == d - 1){ // SI LA CELL ESTA EN LA ULTIMA FILA
+				printf("ULTIMA FILA\n");
+				if (x > 1 && x < d - 1){
+					printf("ENTRE COLUMNA 2 Y D - 2\n");
+					Cell * cell_before = matrix[y - 1][x - 2];
+					Cell * cell_before_1 = matrix[y][x - 2];
+					Cell * cell_before_2 = matrix[y][x - 1];
+					printf("CELLS 1. (%i, %i) - 2. (%i, %i) - 3. (%i, %i)\n", x - 2, y - 1, x - 2, y, x - 1, y);
+					printf("LIFE  1. B %i V %i     B %i V%i      B %i V %i\n", cell_before -> before, cell_before -> viva, cell_before_1 -> before, cell_before_1 -> viva, cell_before_2 -> before, cell_before_2 -> viva);
+					cell_before -> before = cell_before -> viva;
+					cell_before_1 -> before = cell_before_1 -> viva;
+					cell_before_2 -> before = cell_before_2 -> viva;
+					printf("CELLS 1. (%i, %i) - 2. (%i, %i) - 3. (%i, %i)\n", x - 2, y - 1, x - 2, y, x - 1, y);
+					printf("LIFE  1. B %i V %i     B %i V%i      B %i V %i\n", cell_before -> before, cell_before -> viva, cell_before_1 -> before, cell_before_1 -> viva, cell_before_2 -> before, cell_before_2 -> viva);
+				}
+				else if (x == d - 1){
+					printf("ULTIMA COLUMNA\n");
+					Cell * cell_before_1 = matrix[y - 1][x - 2];
+					Cell * cell_before_2 = matrix[y - 1][x - 1];
+					Cell * cell_before_3 = matrix[y - 1][x];
+					printf("CELLS 1. (%i, %i) - 2. (%i, %i) - 3. (%i, %i)\n", x - 2, y - 1, x - 1, y - 1, x, y - 1);
+					printf("LIFE  1. B %i V %i     B %i V%i      B %i V %i\n", cell_before_1 -> before, cell_before_1 -> viva, cell_before_2 -> before, cell_before_2 -> viva, cell_before_3 -> before, cell_before_3 -> viva);
+					cell_before_1 -> before = cell_before_1 -> viva;
+					cell_before_2 -> before = cell_before_2 -> viva;
+					cell_before_3 -> before = cell_before_3 -> viva;
+					printf("CELLS 1. (%i, %i) - 2. (%i, %i) - 3. (%i, %i)\n", x - 2, y - 1, x - 1, y - 1, x, y - 1);
+					printf("LIFE  1. B %i V %i     B %i V%i      B %i V %i\n", cell_before_1 -> before, cell_before_1 -> viva, cell_before_2 -> before, cell_before_2 -> viva, cell_before_3 -> before, cell_before_3 -> viva);
+
+				}
 			}
-			if (x == d - 1){
-				printf("ULTIMA COLUMNA\n");
-				Cell * cell_iterator_1 = matrix[y][x - 1];
-				Cell * cell_iterator_2 = matrix[y][x];
-				cell_iterator_1 -> before = cell_iterator_1 -> viva;
-				cell_iterator_2 -> before = cell_iterator_2 -> viva;
-			}
-		}
-		else{
-			printf("MIDDLE LINE\n");
-			if (x > 1 && x < d - 1){
-				printf("MEDIO\n");
-				Cell * cell_iterator = matrix[y - 1][x - 2];
-				cell_iterator -> before = cell_iterator -> viva;
-			}
-			if (x == d - 1){
-				printf("ULTIMA COLUMNA\n");
-				Cell * cell_iterator_1 = matrix[y - 1][x - 1];
-				Cell * cell_iterator_2 = matrix[y - 1][x];
-				cell_iterator_1 -> before = cell_iterator_1 -> viva;
-				cell_iterator_2 -> before = cell_iterator_2 -> viva;
+			else if (y > 0){ // SI ESTA EN CUALQUIER OTRA FILA
+				printf("CUALQUIER FILA\n");
+				if (x > 1 && x < d - 1){
+					printf("ENTRE COLUMNA 2 Y D - 2\n");
+					Cell * cell_before = matrix[y - 1][x - 2];
+					cell_before -> before = cell_before -> viva;
+				}
+				else if (x == d - 1){
+					printf("ULTIMA COLUMNA\n");
+					Cell * cell_before_1 = matrix[y - 1][x - 2];
+					Cell * cell_before_2 = matrix[y - 1][x - 1];
+					Cell * cell_before_3 = matrix[y - 1][x];
+					printf("CELLS 1. (%i, %i) - 2. (%i, %i) - 3. (%i, %i)\n", x - 2, y - 1, x - 1, y - 1, x, y - 1);
+					printf("LIFE  1. B %i V %i     B %i V%i      B %i V %i\n", cell_before_1 -> before, cell_before_1 -> viva, cell_before_2 -> before, cell_before_2 -> viva, cell_before_3 -> before, cell_before_3 -> viva);
+					cell_before_1 -> before = cell_before_1 -> viva;
+					cell_before_2 -> before = cell_before_2 -> viva;
+					cell_before_3 -> before = cell_before_3 -> viva;
+					printf("CELLS 1. (%i, %i) - 2. (%i, %i) - 3. (%i, %i)\n", x - 2, y - 1, x - 1, y - 1, x, y - 1);
+					printf("LIFE  1. B %i V %i     B %i V%i      B %i V %i\n", cell_before_1 -> before, cell_before_1 -> viva, cell_before_2 -> before, cell_before_2 -> viva, cell_before_3 -> before, cell_before_3 -> viva);
+
+				}
 			}
 		}
 	}
@@ -387,7 +425,7 @@ int main(int argc, char** argv)
 		printf("EXECUTION TIME: %i CELL COUNT: %i\n", simulation_tablero -> execution_time, simulation_tablero -> cell_count);
 		for (int j = 0; j < simulation_tablero -> d; j++){
 			for (int i = 0; i < simulation_tablero -> d; i++){
-				born_or_die_cell(tablero_cells_matrix, i, j, a, b, c, d);
+				born_or_die_cell(simulation_tablero, tablero_cells_matrix, i, j, a, b, c, d);
 				print_tablero_position(simulation_tablero, i, j);
 				//sleep(1);
 			}
