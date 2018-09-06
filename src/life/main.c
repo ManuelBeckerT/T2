@@ -9,6 +9,7 @@
 struct Cell
 {
 	int viva;
+	int before;
 	int x;
 	int y;
 };
@@ -17,8 +18,11 @@ typedef struct Cell Cell;
 
 struct Tablero
 {
-	int size_x;
-	int size_y;
+	int a;
+	int b;
+	int c;
+	int d;
+	int execution_time;
 
 	char * name;
 	int cell_count;
@@ -30,30 +34,10 @@ struct Tablero
 
 typedef struct Tablero Tablero;
 
-int count_lines(char * archivo){
-	FILE* input_file = fopen(archivo, "r");
-	int count = 0;  // Line counter (result)
-	char c;  // To store a character read from file
-	// Check if file exists
-	if (input_file == NULL)
-	{
-	    printf("Could not open file %s", archivo);
-	    return 0;
-	}
-	// Extract characters from file and store in character c
-	for (c = getc(input_file); c != EOF; c = getc(input_file))
-	    if (c == '\n') // Increment count if this character is newline
-	        count = count + 1;
-
-	// Close the file
-	fclose(input_file);
-	return count;
-}
-
 void print_tablero(Tablero * tablero){
 	printf("PRINTING TABLERO %s\n", tablero -> name);
 	Cell *** matrix = tablero -> cells_matrix;
-	int size = tablero -> size_x;
+	int size = tablero -> d;
 	for (int j = 0; j < size; j++){
 		for (int i = 0; i < size; i++){
 			if (matrix[size - j - 1][i] -> viva == 1){
@@ -67,6 +51,230 @@ void print_tablero(Tablero * tablero){
 		printf("\n");
 	}
 	printf("\n");
+}
+
+void print_tablero_position(Tablero * tablero, int x, int y){
+	printf("PRINTING TABLERO %s\n", tablero -> name);
+	Cell *** matrix = tablero -> cells_matrix;
+	int size = tablero -> d;
+	for (int j = 0; j < size; j++){
+		for (int i = 0; i < size; i++){
+			if (j == y && i == x){
+				printf("\u25A3 ");
+			}
+			else{
+				if (matrix[j][i] -> viva == 1){
+					printf("\u25A0 ");
+				}
+				else{
+					printf("\u25A1 ");
+				}
+
+			}
+
+			//printf("%i ", matrix[size - j - 1][i] -> viva);
+		}
+		printf("\n");
+	}
+	printf("\n");
+}
+
+int check_position(Cell *** matrix, int x, int y){
+	if (matrix[y][x] -> before == 1){
+		return 1;
+	}
+	return 0;
+}
+
+int count_neighbour_cells(Cell *** matrix, int x, int y, int d){
+	int count = 0;
+	if (x == 0 && y == 0){ // SI ES LA ESQUINA SUPERIOR IZQUIERDA
+		printf("ESQUINA SUPERIOR IZQUIERDA\n");
+		count += check_position(matrix, x + 1, y);
+		count += check_position(matrix, x, y + 1);
+		count += check_position(matrix, x + 1, y + 1);
+	}
+	else if (x == 0 && y == d - 1){ // SI ES LA ESQUINA INFERIOR IZQUIERDA
+		printf("ESQUINA INFERIOR IZQUIERDA\n");
+		count += check_position(matrix, x + 1, y);
+		count += check_position(matrix, x, y - 1);
+		count += check_position(matrix, x + 1, y - 1);
+	}
+	else if (x == d - 1 && y == 0){ // SI ES LA ESQUINA SUPERIOR DERECHA
+		printf("ESQUINA SUPERIOR DERECHA\n");
+		count += check_position(matrix, x - 1, y);
+		count += check_position(matrix, x, y + 1);
+		count += check_position(matrix, x - 1, y + 1);
+	}
+	else if (x == d - 1 && y == d - 1){ // SI ES LA ESQUINA INFERIOR DERECHA
+		printf("ESQUINA INFERIOR DERECHA\n");
+		count += check_position(matrix, x - 1, y);
+		count += check_position(matrix, x, y - 1);
+		count += check_position(matrix, x - 1, y - 1);
+	}
+	else if (x == 0){ // SI ES LA PRIMERA COLUMNA
+		printf("PRIMERA COLUMNA\n");
+		count += check_position(matrix, x, y - 1);
+		count += check_position(matrix, x, y + 1);
+		count += check_position(matrix, x + 1, y - 1);
+		count += check_position(matrix, x + 1, y + 1);
+		count += check_position(matrix, x + 1, y);
+	}
+	else if (x == d - 1){ // SI ES LA ULTIMA COLUMNA
+		printf("ULTIMA COLUMNA\n");
+		count += check_position(matrix, x, y - 1);
+		count += check_position(matrix, x, y + 1);
+		count += check_position(matrix, x - 1, y - 1);
+		count += check_position(matrix, x - 1, y + 1);
+		count += check_position(matrix, x - 1, y);
+	}
+	else if (y == 0){ // SI ES LA PRIMERA LINEA
+		printf("PRIMERA LINEA\n");
+		count += check_position(matrix, x + 1, y);
+		count += check_position(matrix, x - 1, y);
+		count += check_position(matrix, x + 1, y + 1);
+		count += check_position(matrix, x - 1, y + 1);
+		count += check_position(matrix, x, y + 1);
+	}
+	else if (y == d - 1){ // SI ES LA ULTIMA LINEA
+		printf("ULTIMA LINEA\n");
+		count += check_position(matrix, x + 1, y);
+		count += check_position(matrix, x - 1, y);
+		count += check_position(matrix, x + 1, y - 1);
+		count += check_position(matrix, x - 1, y - 1);
+		count += check_position(matrix, x, y - 1);
+	}
+	else{ // SI ES EN CUALQUIER OTRA POSICION
+		printf("CENTRO\n");
+		count += check_position(matrix, x + 1, y);
+		count += check_position(matrix, x - 1, y);
+		count += check_position(matrix, x, y + 1);
+		count += check_position(matrix, x, y - 1);
+		count += check_position(matrix, x + 1, y - 1);
+		count += check_position(matrix, x + 1, y + 1);
+		count += check_position(matrix, x - 1, y + 1);
+		count += check_position(matrix, x - 1, y - 1);
+	}
+	return count;
+}
+
+void born_or_die_cell(Cell *** matrix, int x, int y, int a, int b, int c, int d){
+	Cell * cell = matrix[y][x];
+	int count = count_neighbour_cells(matrix, x, y, d);
+	printf("(%i, %i) -> COUNT: %i\n", x, y, count);
+	if (count == a){
+		printf("BORN CELL\n");
+		cell -> viva = 1;
+		if (y == 0){
+			printf("FIRST LINE\n");
+			cell -> before = cell -> viva;
+		}
+		else if (y == d - 1){
+			printf("LAST LINE\n");
+			if (x > 1 && x < d - 1){
+				printf("MEDIO\n");
+				Cell * cell_iterator = matrix[y][x - 2];
+				cell_iterator -> before = cell_iterator -> viva;
+			}
+			if (x == d - 1){
+				printf("ULTIMA COLUMNA\n");
+				Cell * cell_iterator_1 = matrix[y][x - 1];
+				Cell * cell_iterator_2 = matrix[y][x];
+				cell_iterator_1 -> before = cell_iterator_1 -> viva;
+				cell_iterator_2 -> before = cell_iterator_2 -> viva;
+			}
+		}
+		else{
+			printf("MIDDLE LINE\n");
+			if (x > 1 && x < d - 1){
+				printf("MEDIO\n");
+				Cell * cell_iterator = matrix[y - 1][x - 2];
+				cell_iterator -> before = cell_iterator -> viva;
+			}
+			if (x == d - 1){
+				printf("ULTIMA COLUMNA\n");
+				Cell * cell_iterator_1 = matrix[y - 1][x - 1];
+				Cell * cell_iterator_2 = matrix[y - 1][x];
+				cell_iterator_1 -> before = cell_iterator_1 -> viva;
+				cell_iterator_2 -> before = cell_iterator_2 -> viva;
+			}
+		}
+	}
+	else if (count == 0){
+		printf("NOTHING\n");
+		if (y == 0){
+			printf("FIRST LINE\n");
+			cell -> before = cell -> viva;
+		}
+		else if (y == d - 1){
+			printf("LAST LINE\n");
+			if (x > 1 && x < d - 1){
+				printf("MEDIO\n");
+				Cell * cell_iterator = matrix[y][x - 2];
+				cell_iterator -> before = cell_iterator -> viva;
+			}
+			if (x == d - 1){
+				printf("ULTIMA COLUMNA\n");
+				Cell * cell_iterator_1 = matrix[y][x - 1];
+				Cell * cell_iterator_2 = matrix[y][x];
+				cell_iterator_1 -> before = cell_iterator_1 -> viva;
+				cell_iterator_2 -> before = cell_iterator_2 -> viva;
+			}
+		}
+		else{
+			printf("MIDDLE LINE\n");
+			if (x > 1 && x < d - 1){
+				printf("MEDIO\n");
+				Cell * cell_iterator = matrix[y - 1][x - 2];
+				cell_iterator -> before = cell_iterator -> viva;
+			}
+			if (x == d - 1){
+				printf("ULTIMA COLUMNA\n");
+				Cell * cell_iterator_1 = matrix[y - 1][x - 1];
+				Cell * cell_iterator_2 = matrix[y - 1][x];
+				cell_iterator_1 -> before = cell_iterator_1 -> viva;
+				cell_iterator_2 -> before = cell_iterator_2 -> viva;
+			}
+		}
+	}
+	else if(count < b || count > c){
+		printf("DIE CELL\n");
+		cell -> viva = 0;
+		if (y == 0){
+			printf("FIRST LINE\n");
+			cell -> before = cell -> viva;
+		}
+		else if (y == d - 1){
+			printf("LAST LINE\n");
+			if (x > 1 && x < d - 1){
+				printf("MEDIO\n");
+				Cell * cell_iterator = matrix[y][x - 2];
+				cell_iterator -> before = cell_iterator -> viva;
+			}
+			if (x == d - 1){
+				printf("ULTIMA COLUMNA\n");
+				Cell * cell_iterator_1 = matrix[y][x - 1];
+				Cell * cell_iterator_2 = matrix[y][x];
+				cell_iterator_1 -> before = cell_iterator_1 -> viva;
+				cell_iterator_2 -> before = cell_iterator_2 -> viva;
+			}
+		}
+		else{
+			printf("MIDDLE LINE\n");
+			if (x > 1 && x < d - 1){
+				printf("MEDIO\n");
+				Cell * cell_iterator = matrix[y - 1][x - 2];
+				cell_iterator -> before = cell_iterator -> viva;
+			}
+			if (x == d - 1){
+				printf("ULTIMA COLUMNA\n");
+				Cell * cell_iterator_1 = matrix[y - 1][x - 1];
+				Cell * cell_iterator_2 = matrix[y - 1][x];
+				cell_iterator_1 -> before = cell_iterator_1 -> viva;
+				cell_iterator_2 -> before = cell_iterator_2 -> viva;
+			}
+		}
+	}
 }
 
 int main(int argc, char** argv)
@@ -104,12 +312,14 @@ int main(int argc, char** argv)
 
 	int input_count = 0;
 	while (table_count != input_count){
-		printf("\nNUEVO TABLERO\n");
+
 		Tablero * tablero = malloc(sizeof(Tablero));
-		tablero -> size_x = d;
-		tablero -> size_y = d;
+		tablero -> a = a;
+		tablero -> b = b;
+		tablero -> c = c;
+		tablero -> d = d;
+		tablero -> execution_time = execution_time;
 		tableros[position] = tablero;
-		printf("POSITION %i\n", position);
 		position ++;
 
 		//printf("%s", line);
@@ -117,11 +327,9 @@ int main(int argc, char** argv)
 		fscanf(input_file, "%s ", name);
 		tablero -> name = malloc(sizeof(name) + 1);
 		strcpy(tablero -> name, name);
-		printf("%s\n", tablero -> name);
 		int cell_count;
 		fscanf(input_file, "%i ", &cell_count);
 		tablero -> cell_count = cell_count;
-		printf("%i\n", tablero -> cell_count);
 		tablero -> position = 0;
 
 
@@ -135,9 +343,9 @@ int main(int argc, char** argv)
 				array_line[j] -> x = i;
 				array_line[j] -> y = d - j + 1;
 				array_line[j] -> viva = 0;
+				array_line[j] -> before = 0;
 			}
 		}
-
 
 		while (cell_count > 0){
 			int x, y;
@@ -147,6 +355,7 @@ int main(int argc, char** argv)
 				cell -> x = x;
 				cell -> y = y;
 				cell -> viva = 1;
+				cell -> before = 1;
 			}
 			else{
 				fscanf(input_file, "%i %i ", &x, &y);
@@ -154,8 +363,8 @@ int main(int argc, char** argv)
 				cell -> x = x;
 				cell -> y = y;
 				cell -> viva = 1;
+				cell -> before = 1;
 			}
-			printf("ORIGINAL: %i %i\nNEW: %i %i\n", y, x, d - y - 1, x);
 
 			cell_count --;
 		}
@@ -163,8 +372,32 @@ int main(int argc, char** argv)
 	}
 
 	print_tablero(tableros[0]);
-	print_tablero(tableros[1]);
-	print_tablero(tableros[2]);
+	//print_tablero(tableros[1]);
+	//print_tablero(tableros[2]);
+
+
+	// SIMULACION TABLEROS Y VIDA
+	Tablero * simulation_tablero = tableros[0];
+	Cell *** tablero_cells_matrix = simulation_tablero -> cells_matrix;
+	a = simulation_tablero -> a;
+	b = simulation_tablero -> b;
+	c = simulation_tablero -> c;
+	d = simulation_tablero -> d;
+	while (simulation_tablero -> execution_time != 0  /*|| simulation_tablero -> cell_count != 0  AGREGAR CONDICIONES DE LOOP Y DE CTRL + C*/){
+		printf("EXECUTION TIME: %i CELL COUNT: %i\n", simulation_tablero -> execution_time, simulation_tablero -> cell_count);
+		for (int j = 0; j < simulation_tablero -> d; j++){
+			for (int i = 0; i < simulation_tablero -> d; i++){
+				born_or_die_cell(tablero_cells_matrix, i, j, a, b, c, d);
+				print_tablero_position(simulation_tablero, i, j);
+				//sleep(1);
+			}
+		}
+		//print_tablero(simulation_tablero);
+		simulation_tablero -> execution_time --;
+	}
+
+
+
 
 	//######################################
 	//##   SIMULACION DE LOS PROCESOS     ##
@@ -172,7 +405,7 @@ int main(int argc, char** argv)
 	printf("\nLIBERANDO MEMORIA\n");
 	for (int tablero_count = 0; tablero_count < table_count; tablero_count ++){
 		Tablero * current_tablero = tableros[tablero_count];
-		printf("\nCURRENT TABLERO %s\n", current_tablero -> name);
+		printf("\nFREEING TABLERO %s\n", current_tablero -> name);
 
 		// LIBERANDO MATRIX
 		Cell *** current_matrix = current_tablero -> cells_matrix;
