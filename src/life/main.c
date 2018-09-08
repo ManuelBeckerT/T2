@@ -6,8 +6,7 @@
 
 #define MAX_SIZE 256
 
-struct Cell
-{
+struct Cell{
 	int viva;
 	int before;
 	int x;
@@ -16,8 +15,7 @@ struct Cell
 
 typedef struct Cell Cell;
 
-struct Tablero
-{
+struct Tablero{
 	int a;
 	int b;
 	int c;
@@ -30,9 +28,14 @@ struct Tablero
 
 	Cell *** cells_matrix;
 
-	int next;
-	Cell **** states;
+	int count_state_a;
+	int count_state_b;
+	int count_state_c;
+	int count_state_d;
 
+	int state_array_count;
+	int state_array_position;
+	Cell **** states;
 };
 
 typedef struct Tablero Tablero;
@@ -200,6 +203,22 @@ void change_cell_status(Cell *** matrix, int x, int y){
 	matrix[y][x] -> viva = matrix[y][x] -> before;
 }
 
+void add_state(Tablero * tablero,int x, int y){
+	if (tablero -> state_array_position == 4){
+		tablero -> state_array_position = 0;
+	}
+	Cell **** states = tablero -> states;
+	for (int j = 0; j < tablero -> d; j++){
+		for (int i = 0; i < tablero -> d; i++){
+			states[tablero -> state_array_position][j][i] -> viva = tablero -> cells_matrix[j][i] -> viva;
+		}
+	}
+	if (tablero -> state_array_count < 4){
+		tablero -> state_array_count++;
+	}
+	tablero -> state_array_position++;
+}
+
 int main(int argc, char** argv)
 {
 	if (argc > 3 || argc < 3){
@@ -209,8 +228,7 @@ int main(int argc, char** argv)
 
 	FILE* input_file = fopen(argv[1], "r");
 	/* Falló la apertura del archivo */
-	if(!input_file)
-	{
+	if(!input_file){
 		printf("¡El archivo %s no existe!\n", argv[1]);
 		return 2;
 	}
@@ -227,7 +245,6 @@ int main(int argc, char** argv)
 	//###    LECTURA DEL ARCHIVO TXT     ###
 	//######################################
 
-	// Basado en esta página https://rosettacode.org/wiki/Read_a_file_line_by_line
 	// LECTURA INPUT.TXT linea por linea
 
 	Tablero ** tableros = malloc(sizeof(Tablero *)*table_count);
@@ -241,6 +258,8 @@ int main(int argc, char** argv)
 		tablero -> b = b;
 		tablero -> c = c;
 		tablero -> d = d;
+		tablero -> state_array_position = 0;
+		tablero -> state_array_count = 0;
 		tablero -> execution_time = execution_time;
 		tableros[position] = tablero;
 		position ++;
@@ -254,6 +273,11 @@ int main(int argc, char** argv)
 		fscanf(input_file, "%i ", &cell_count);
 		tablero -> cell_count = cell_count;
 		tablero -> position = 0;
+
+		tablero -> count_state_a = 0;
+		tablero -> count_state_b = 0;
+		tablero -> count_state_c = 0;
+		tablero -> count_state_d = 0;
 
 		Cell *** array_matrix = malloc(sizeof(Cell **)*d);
 		tablero -> cells_matrix = array_matrix;
@@ -314,14 +338,15 @@ int main(int argc, char** argv)
 		input_count ++;
 	}
 
-	print_tablero(tableros[0]);
-	//print_tablero(tableros[1]);
-	//print_tablero(tableros[2]);
-
 
 	//######################################
 	//##   SIMULACION DE LOS PROCESOS     ##
 	//######################################
+
+	print_tablero(tableros[0]);
+	//print_tablero(tableros[1]);
+	//print_tablero(tableros[2]);
+
 	Tablero * simulation_tablero = tableros[0];
 	Cell *** tablero_cells_matrix = simulation_tablero -> cells_matrix;
 	a = simulation_tablero -> a;
@@ -369,7 +394,6 @@ int main(int argc, char** argv)
 		free(current_tablero);
 	}
 	free(tableros);
-
 
 	fclose(input_file);
 
