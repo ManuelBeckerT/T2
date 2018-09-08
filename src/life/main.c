@@ -28,11 +28,6 @@ struct Tablero{
 
 	Cell *** cells_matrix;
 
-	int count_state_a;
-	int count_state_b;
-	int count_state_c;
-	int count_state_d;
-
 	int state_array_count;
 	int state_array_position;
 	Cell **** states;
@@ -203,7 +198,7 @@ void change_cell_status(Cell *** matrix, int x, int y){
 	matrix[y][x] -> viva = matrix[y][x] -> before;
 }
 
-void add_state(Tablero * tablero,int x, int y){
+void add_state(Tablero * tablero){
 	if (tablero -> state_array_position == 4){
 		tablero -> state_array_position = 0;
 	}
@@ -217,6 +212,40 @@ void add_state(Tablero * tablero,int x, int y){
 		tablero -> state_array_count++;
 	}
 	tablero -> state_array_position++;
+}
+
+int check_states(Tablero * tablero){
+	Cell *** matrix = tablero -> cells_matrix;
+	Cell *** state_a = tablero -> states[0];
+	Cell *** state_b = tablero -> states[1];
+	Cell *** state_c = tablero -> states[2];
+	Cell *** state_d = tablero -> states[3];
+	int same_a = 0;
+	int same_b = 0;
+	int same_c = 0;
+	int same_d = 0;
+
+	for (int j = 0; j < tablero -> d; j++){
+		for (int i = 0; i < tablero -> d; i++){
+			if (same_a == 1 && same_b == 1 && same_c == 1 && same_d == 1){
+				return 1;
+			}
+			if (matrix[j][i] -> viva != state_a[j][i] -> viva && same_a == 0){
+				same_a = 1;
+			}
+			if (matrix[j][i] -> viva != state_b[j][i] -> viva && same_b == 0){
+				same_b = 1;
+			}
+			if (matrix[j][i] -> viva != state_c[j][i] -> viva && same_c == 0){
+				same_c = 1;
+			}
+			if (matrix[j][i] -> viva != state_d[j][i] -> viva && same_d == 0){
+				same_d = 1;
+			}
+		}
+	}
+	return 0;
+
 }
 
 int main(int argc, char** argv)
@@ -274,11 +303,6 @@ int main(int argc, char** argv)
 		tablero -> cell_count = cell_count;
 		tablero -> position = 0;
 
-		tablero -> count_state_a = 0;
-		tablero -> count_state_b = 0;
-		tablero -> count_state_c = 0;
-		tablero -> count_state_d = 0;
-
 		Cell *** array_matrix = malloc(sizeof(Cell **)*d);
 		tablero -> cells_matrix = array_matrix;
 		for (int i = 0; i < d; i++){
@@ -297,21 +321,14 @@ int main(int argc, char** argv)
 		for (int k = 0; k < 4; k++){
 			Cell *** array_state = malloc(sizeof(Cell **)*d);
 			tablero -> states[k] = array_state;
-			printf("STAGE %i\n", k);
 			for (int i = 0; i < d; i++){
 				Cell ** state_line = malloc(sizeof(Cell *)*d);
 				array_state[i] = state_line;
 				for (int j = 0; j < d; j++){
 					state_line[j] = malloc(sizeof(Cell));
-					state_line[j] -> x = i;
-					state_line[j] -> y = d - j + 1;
-					state_line[j] -> viva = 0;
-					state_line[j] -> before = 0;
-					printf("%i ", state_line[j] -> viva);
+					state_line[j] -> viva = -1;
 				}
-				printf("\n");
 			}
-			printf("\n");
 		}
 
 		while (cell_count > 0){
@@ -343,18 +360,23 @@ int main(int argc, char** argv)
 	//##   SIMULACION DE LOS PROCESOS     ##
 	//######################################
 
-	print_tablero(tableros[0]);
-	//print_tablero(tableros[1]);
+	//print_tablero(tableros[0]);
+	print_tablero(tableros[1]);
 	//print_tablero(tableros[2]);
 
-	Tablero * simulation_tablero = tableros[0];
+	Tablero * simulation_tablero = tableros[1];
 	Cell *** tablero_cells_matrix = simulation_tablero -> cells_matrix;
 	a = simulation_tablero -> a;
 	b = simulation_tablero -> b;
 	c = simulation_tablero -> c;
 	d = simulation_tablero -> d;
 
-	while (simulation_tablero -> execution_time != 0  /*|| simulation_tablero -> cell_count != 0  AGREGAR CONDICIONES DE LOOP Y DE CTRL + C*/){
+	int loop = 0;
+	int simulation_time = 0;
+
+	printf("SIMULATION TIME %i - LOOP %i - CELL COUNT %i\n", simulation_time, loop, simulation_tablero -> cell_count);
+
+	while (simulation_tablero -> execution_time != simulation_time  && simulation_tablero -> cell_count != 0  && loop != 1 /*AGREGAR CONDICIONES DE LOOP Y DE CTRL + C*/){
 		printf("EXECUTION TIME: %i CELL COUNT: %i\n", simulation_tablero -> execution_time, simulation_tablero -> cell_count);
 		for (int j = 0; j < simulation_tablero -> d; j++){
 			for (int i = 0; i < simulation_tablero -> d; i++){
@@ -366,25 +388,37 @@ int main(int argc, char** argv)
 				change_cell_status(tablero_cells_matrix, i, j);
 			}
 		}
-		print_tablero(simulation_tablero);
-		simulation_tablero -> execution_time --;
+		if(check_states(simulation_tablero)){
+			add_state(simulation_tablero);
+		}
+		else{
+			loop = 1;
+			printf("SAME STATE\n");
+		}
+
+		printf("SIMULATION TIME %i - LOOP %i - CELL COUNT %i\n", simulation_time, loop, simulation_tablero -> cell_count);
+		simulation_time ++;
+
 	}
+	print_tablero(simulation_tablero);
+
+	printf("###################################\n###################################\n###################################\n\n\n");
 
 	//######################################
 	//##  LIBERANDO MEMORIA DEL PROGRAMA  ##
 	//######################################
 
-	printf("\nLIBERANDO MEMORIA\n");
+	//printf("\nLIBERANDO MEMORIA\n");
 	for (int tablero_count = 0; tablero_count < table_count; tablero_count ++){
 		Tablero * current_tablero = tableros[tablero_count];
-		printf("\nFREEING TABLERO %s\n", current_tablero -> name);
+		//printf("\nFREEING TABLERO %s\n", current_tablero -> name);
 
 		// LIBERANDO MATRIX
 		Cell *** matrix = current_tablero -> cells_matrix;
 		free_tablero(matrix, current_tablero -> d);
 
 		for (int i = 0; i < 4; i++){
-			printf("LIBERANDO MATRIZ ESTADOS %i\n", i);
+			//printf("LIBERANDO MATRIZ ESTADOS %i\n", i);
 			free_tablero(current_tablero -> states[i], current_tablero -> d);
 		}
 		free(current_tablero -> states);
@@ -396,6 +430,19 @@ int main(int argc, char** argv)
 	free(tableros);
 
 	fclose(input_file);
+
+	printf("\n\n");
+	int process_count = table_count;
+	while (process_count != 0){
+		if (fork() == 0){
+			printf("HELLO I AM A CHILD - TABLERO %i\n", process_count);
+		}
+		else{
+			printf("I AM A PARENT AND WONT DO NOTHING\n");
+			process_count = 1;
+		}
+		process_count --;
+	}
 
 	return 0;
 }
