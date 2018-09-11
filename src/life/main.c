@@ -31,6 +31,9 @@ struct Tablero{
 	int state_array_count;
 	int state_array_position;
 	Cell **** states;
+
+	int end; // 0 LOOP, 1 NOCELLS, 2 NOTIME, 3 SIGNAL
+	int simulation_time;
 };
 
 typedef struct Tablero Tablero;
@@ -249,6 +252,58 @@ int check_states(Tablero * tablero){
 
 }
 
+void cell_life_simulation(Tablero * simulation_tablero, int table_count, Tablero ** tableros){
+	Cell *** tablero_cells_matrix = simulation_tablero -> cells_matrix;
+	int a = simulation_tablero -> a;
+	int b = simulation_tablero -> b;
+	int c = simulation_tablero -> c;
+	int d = simulation_tablero -> d;
+
+	int loop = 0;
+	int simulation_time = 0;
+
+	while (simulation_tablero -> execution_time != simulation_time  && simulation_tablero -> cell_count != 0  && loop != 1){
+		for (int j = 0; j < simulation_tablero -> d; j++){
+			for (int i = 0; i < simulation_tablero -> d; i++){
+				born_or_die_cell(simulation_tablero, tablero_cells_matrix, i, j, a, b, c, d);
+			}
+		}
+		for (int j = 0; j < simulation_tablero -> d; j++){
+			for (int i = 0; i < simulation_tablero -> d; i++){
+				change_cell_status(tablero_cells_matrix, i, j);
+			}
+		}
+		if(check_states(simulation_tablero)){
+			add_state(simulation_tablero);
+		}
+		else{
+			loop = 1;
+		}
+
+		simulation_time ++;
+
+	}
+	print_tablero(simulation_tablero);
+	if (simulation_time == simulation_tablero -> execution_time){
+		printf("%s Término por tiempo. Tiempo simulación %i\n", simulation_tablero -> name, simulation_time);
+		simulation_tablero -> end = 2;
+	}
+	else if (simulation_tablero -> cell_count == 0){
+		printf("%s Término por falta de células. Tiempo simulación %i\n", simulation_tablero -> name, simulation_time);
+		simulation_tablero -> end = 1;
+	}
+	else if (loop == 1){
+		printf("%s Término por loop. Tiempo simulación %i\n", simulation_tablero -> name, simulation_time);
+		simulation_tablero -> end = 0;
+	}
+	else{
+		printf("%s Término por interrupción. Tiempo simulación %i\n", simulation_tablero -> name, simulation_time);
+		simulation_tablero -> end = 3;
+	}
+	simulation_tablero -> simulation_time = simulation_time;
+	_exit(NULL);
+}
+
 int main(int argc, char** argv)
 {
 	if (argc > 3 || argc < 3){
@@ -264,12 +319,9 @@ int main(int argc, char** argv)
 	}
 
 	int execution_time = atoi(argv[2]);
-	printf("\nEXECUTION TIME: %i\n", execution_time);
 
 	int table_count, a, b, c, d;
 	fscanf(input_file, "%i %i  %i %i %i", &table_count, &a, &b, &c, &d);
-
-	printf("\nINPUT INFO\nTable count: %i\nA: %i\nB: %i\nC: %i\nD: %i\n", table_count, a, b, c, d);
 
 	//######################################
 	//###    LECTURA DEL ARCHIVO TXT     ###
@@ -288,6 +340,7 @@ int main(int argc, char** argv)
 		tablero -> b = b;
 		tablero -> c = c;
 		tablero -> d = d;
+		//tablero -> end = 4;
 		tablero -> state_array_position = 0;
 		tablero -> state_array_count = 0;
 		tablero -> execution_time = execution_time;
@@ -361,70 +414,43 @@ int main(int argc, char** argv)
 	//##   SIMULACION DE LOS PROCESOS     ##
 	//######################################
 
-	printf("\n\n");
-	printf("MAIN PROCESS PID %i\n", getpid());
+	for (int i = 0; i < table_count; i++){
+		print_tablero(tableros[i]);
+	}
 
 	int process_count = table_count;
-	int value = 0;
-	while (process_count != 0){
-		if (fork() == 0){
-			//printf("HELLO I AM A CHILD - TABLERO %i\n\n", process_count);
-			value = process_count - 1;
-			printf("PID %i\n", getpid());
+	int pid = 0;
+	for (int p = 0; p < process_count; p++){
+		if (pid == vfork()){
+			cell_life_simulation(tableros[p], table_count, tableros);
 		}
 		else{
-			//printf("I AM A PARENT AND WONT DO NOTHING\n");
-			process_count = 1;
-			printf("PID %i\n", getpid());
+			wait(NULL);
 		}
-		process_count --;
 	}
-	printf("%i\n", value);
 
+	//######################################
+	//##    ESCRIBIENDO resutlado.csv     ##
+	//######################################
 
-	//print_tablero(tableros[0]);
-	//print_tablero(tableros[value]);
-	//print_tablero(tableros[2]);
-
-	Tablero * simulation_tablero = tableros[value];
-	Cell *** tablero_cells_matrix = simulation_tablero -> cells_matrix;
-	a = simulation_tablero -> a;
-	b = simulation_tablero -> b;
-	c = simulation_tablero -> c;
-	d = simulation_tablero -> d;
-
-	int loop = 0;
-	int simulation_time = 0;
-
-	//printf("SIMULATION TIME %i - LOOP %i - CELL COUNT %i\n", simulation_time, loop, simulation_tablero -> cell_count);
-
-	while (simulation_tablero -> execution_time != simulation_time  && simulation_tablero -> cell_count != 0  && loop != 1){
-		//printf("EXECUTION TIME: %i CELL COUNT: %i\n", simulation_tablero -> execution_time, simulation_tablero -> cell_count);
-		for (int j = 0; j < simulation_tablero -> d; j++){
-			for (int i = 0; i < simulation_tablero -> d; i++){
-				born_or_die_cell(simulation_tablero, tablero_cells_matrix, i, j, a, b, c, d);
-			}
+	// 0 LOOP, 1 NOCELLS, 2 NOTIME, 3 SIGNAL
+	// nombre_tablero_i,tiempo_final_i,cantidad_celulas_i,razon_termino_i
+	FILE* output_file = fopen("resultado.csv", "w");
+	printf("TERMINAMOS\n");
+	for (int i = 0; i < table_count; i++){
+		if (tableros[i] -> end == 0){
+			fprintf(output_file, "%s,%i,%i,LOOP\n", tableros[i] -> name, tableros[i] -> simulation_time, tableros[i] -> cell_count);
 		}
-		for (int j = 0; j < simulation_tablero -> d; j++){
-			for (int i = 0; i < simulation_tablero -> d; i++){
-				change_cell_status(tablero_cells_matrix, i, j);
-			}
+		else if (tableros[i] -> end == 1){
+			fprintf(output_file, "%s,%i,%i,NOCELLS\n", tableros[i] -> name, tableros[i] -> simulation_time, tableros[i] -> cell_count);
 		}
-		if(check_states(simulation_tablero)){
-			add_state(simulation_tablero);
+		else if (tableros[i] -> end == 2){
+			fprintf(output_file, "%s,%i,%i,NOTIME\n", tableros[i] -> name, tableros[i] -> simulation_time, tableros[i] -> cell_count);
 		}
 		else{
-			loop = 1;
-			//printf("SAME STATE\n");
+			fprintf(output_file, "%s,%i,%i,SIGNAL\n", tableros[i] -> name, tableros[i] -> simulation_time, tableros[i] -> cell_count);
 		}
-
-		//printf("SIMULATION TIME %i - LOOP %i - CELL COUNT %i\n", simulation_time, loop, simulation_tablero -> cell_count);
-		simulation_time ++;
-
 	}
-	//print_tablero(simulation_tablero);
-
-	//printf("###################################\n###################################\n###################################\n\n\n");
 
 	//######################################
 	//##  LIBERANDO MEMORIA DEL PROGRAMA  ##
@@ -452,7 +478,7 @@ int main(int argc, char** argv)
 	free(tableros);
 
 	fclose(input_file);
-
+	fclose(output_file);
 
 
 	return 0;
