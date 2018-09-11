@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <unistd.h>
 #include <string.h>
+#include  <signal.h>
 
 #define MAX_SIZE 256
 
@@ -38,9 +39,9 @@ struct Tablero{
 
 typedef struct Tablero Tablero;
 
-void print_tablero(Tablero * tablero){
+#define SIGINT  2
 
-	printf("PRINTING TABLERO %s\n", tablero -> name);
+void print_tablero(Tablero * tablero){
 	Cell *** matrix = tablero -> cells_matrix;
 	int size = tablero -> d;
 	for (int j = 0; j < size; j++){
@@ -56,7 +57,6 @@ void print_tablero(Tablero * tablero){
 		}
 		printf("\n");
 	}
-	printf("\n");
 }
 
 void print_tablero_position(Tablero * tablero, int x, int y){
@@ -253,6 +253,8 @@ int check_states(Tablero * tablero){
 }
 
 void cell_life_simulation(Tablero * simulation_tablero, int table_count, Tablero ** tableros){
+	printf("\n%s INICIAL\n", simulation_tablero -> name);
+	print_tablero(simulation_tablero);
 	Cell *** tablero_cells_matrix = simulation_tablero -> cells_matrix;
 	int a = simulation_tablero -> a;
 	int b = simulation_tablero -> b;
@@ -283,6 +285,7 @@ void cell_life_simulation(Tablero * simulation_tablero, int table_count, Tablero
 		simulation_time ++;
 
 	}
+	printf("%s FINAL\n", simulation_tablero -> name);
 	print_tablero(simulation_tablero);
 	if (simulation_time == simulation_tablero -> execution_time){
 		printf("%s Término por tiempo. Tiempo simulación %i\n", simulation_tablero -> name, simulation_time);
@@ -301,11 +304,28 @@ void cell_life_simulation(Tablero * simulation_tablero, int table_count, Tablero
 		simulation_tablero -> end = 3;
 	}
 	simulation_tablero -> simulation_time = simulation_time;
-	_exit(NULL);
+	_exit(0);
+}
+
+void  INThandler(int sig){
+
+     char  c;
+
+     signal(sig, SIG_IGN);
+     printf("OUCH, did you hit Ctrl-C?\n"
+            "Do you really want to quit? [y/n] ");
+     c = getchar();
+     if (c == 'y' || c == 'Y')
+          _exit(0);
+
+     else
+          signal(SIGINT, INThandler);
+     getchar(); // Get new line character
 }
 
 int main(int argc, char** argv)
 {
+
 	if (argc > 3 || argc < 3){
 		printf("Modo de uso ./life <file> <t>\n");
 		return 0;
@@ -340,7 +360,7 @@ int main(int argc, char** argv)
 		tablero -> b = b;
 		tablero -> c = c;
 		tablero -> d = d;
-		//tablero -> end = 4;
+		tablero -> end = 3;
 		tablero -> state_array_position = 0;
 		tablero -> state_array_count = 0;
 		tablero -> execution_time = execution_time;
@@ -409,14 +429,11 @@ int main(int argc, char** argv)
 		input_count ++;
 	}
 
+	signal(SIGINT, INThandler);
 
 	//######################################
 	//##   SIMULACION DE LOS PROCESOS     ##
 	//######################################
-
-	for (int i = 0; i < table_count; i++){
-		print_tablero(tableros[i]);
-	}
 
 	int process_count = table_count;
 	int pid = 0;
