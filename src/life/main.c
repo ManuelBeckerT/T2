@@ -41,6 +41,9 @@ typedef struct Tablero Tablero;
 
 #define SIGINT  2
 
+Tablero ** tableros;
+int table_count;
+
 void print_tablero(Tablero * tablero){
 	Cell *** matrix = tablero -> cells_matrix;
 	int size = tablero -> d;
@@ -255,6 +258,7 @@ int check_states(Tablero * tablero){
 void cell_life_simulation(Tablero * simulation_tablero, int table_count, Tablero ** tableros){
 	printf("\n%s INICIAL\n", simulation_tablero -> name);
 	print_tablero(simulation_tablero);
+	add_state(simulation_tablero);
 	Cell *** tablero_cells_matrix = simulation_tablero -> cells_matrix;
 	int a = simulation_tablero -> a;
 	int b = simulation_tablero -> b;
@@ -281,8 +285,10 @@ void cell_life_simulation(Tablero * simulation_tablero, int table_count, Tablero
 		else{
 			loop = 1;
 		}
-
 		simulation_time ++;
+		//printf("SIMULATION TIME %i\n", simulation_time);
+		//print_tablero(simulation_tablero);
+
 
 	}
 	printf("%s FINAL\n", simulation_tablero -> name);
@@ -307,20 +313,28 @@ void cell_life_simulation(Tablero * simulation_tablero, int table_count, Tablero
 	_exit(0);
 }
 
-void  INThandler(int sig){
+void  INThandler(int sig){ // basado en https://stackoverflow.com/questions/4217037/catch-ctrl-c-in-c
+	signal(sig, SIG_IGN);
 
-     char  c;
+	FILE* output_file = fopen("resultado.csv", "w");
+	printf("TERMINAMOS\n");
+	for (int i = 0; i < table_count; i++){
+		if (tableros[i] -> end == 0){
+			fprintf(output_file, "%s,%i,%i,LOOP\n", tableros[i] -> name, tableros[i] -> simulation_time, tableros[i] -> cell_count);
+		}
+		else if (tableros[i] -> end == 1){
+			fprintf(output_file, "%s,%i,%i,NOCELLS\n", tableros[i] -> name, tableros[i] -> simulation_time, tableros[i] -> cell_count);
+		}
+		else if (tableros[i] -> end == 2){
+			fprintf(output_file, "%s,%i,%i,NOTIME\n", tableros[i] -> name, tableros[i] -> simulation_time, tableros[i] -> cell_count);
+		}
+		else{
+			fprintf(output_file, "%s,%i,%i,SIGNAL\n", tableros[i] -> name, tableros[i] -> simulation_time, tableros[i] -> cell_count);
+		}
+	}
+	fclose(output_file);
+	kill(0, SIGKILL);
 
-     signal(sig, SIG_IGN);
-     printf("OUCH, did you hit Ctrl-C?\n"
-            "Do you really want to quit? [y/n] ");
-     c = getchar();
-     if (c == 'y' || c == 'Y')
-          _exit(0);
-
-     else
-          signal(SIGINT, INThandler);
-     getchar(); // Get new line character
 }
 
 int main(int argc, char** argv)
@@ -340,7 +354,7 @@ int main(int argc, char** argv)
 
 	int execution_time = atoi(argv[2]);
 
-	int table_count, a, b, c, d;
+	int a, b, c, d;
 	fscanf(input_file, "%i %i  %i %i %i", &table_count, &a, &b, &c, &d);
 
 	//######################################
@@ -349,7 +363,7 @@ int main(int argc, char** argv)
 
 	// LECTURA INPUT.TXT linea por linea
 
-	Tablero ** tableros = malloc(sizeof(Tablero *)*table_count);
+	tableros = malloc(sizeof(Tablero *)*table_count);
 	int position = 0;
 
 	int input_count = 0;
@@ -442,7 +456,7 @@ int main(int argc, char** argv)
 			cell_life_simulation(tableros[p], table_count, tableros);
 		}
 		else{
-			wait(NULL);
+			wait(0);
 		}
 	}
 
